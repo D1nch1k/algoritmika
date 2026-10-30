@@ -7,7 +7,7 @@ class Program
     static void Main()
     {
         Console.Write("Номер задачи (1-13): ");
-        int n = Convert.ToInt32(Console.ReadLine());
+        int n = Input.ReadInt();
 
         switch (n)
         {
@@ -29,12 +29,42 @@ class Program
     }
 }
 
+static class Input
+{
+    public static int ReadInt(bool nonNegative = false)
+    {
+        while (true)
+        {
+            string? text = Console.ReadLine();
+            if (text is null) throw new System.IO.EndOfStreamException("Ввод завершён.");
+            if (int.TryParse(text, out int value) && (!nonNegative || value >= 0))
+                return value;
+            Console.Write(nonNegative ? "Введите целое неотрицательное число: " : "Введите целое число: ");
+        }
+    }
+
+    public static double ReadDouble(bool positive = false, bool nonNegative = false)
+    {
+        while (true)
+        {
+            string? text = Console.ReadLine();
+            if (text is null) throw new System.IO.EndOfStreamException("Ввод завершён.");
+            if (double.TryParse(text, out double value) &&
+                !double.IsNaN(value) && !double.IsInfinity(value) &&
+                (!positive || value > 0) && (!nonNegative || value >= 0))
+                return value;
+            Console.Write(positive ? "Введите положительное число: " :
+                nonNegative ? "Введите неотрицательное число: " : "Введите число: ");
+        }
+    }
+}
+
 // #1 Секунды -> часы, минуты, секунды
 class Task1
 {
     public static void Run()
     {
-        int k = Convert.ToInt32(Console.ReadLine());
+        int k = Input.ReadInt(nonNegative: true);
         int h = k / 3600;
         int m = k % 3600 / 60;
         int s = k % 60;
@@ -47,9 +77,10 @@ class Task2
 {
     public static void Run()
     {
-        double a = Convert.ToDouble(Console.ReadLine());
-        double b = Convert.ToDouble(Console.ReadLine());
-        double h = Convert.ToDouble(Console.ReadLine());
+        double a = Input.ReadDouble(positive: true);
+        double b = Input.ReadDouble(positive: true);
+        double h = Input.ReadDouble(positive: true);
+        // Для конуса a и b — площади оснований, для трапеции — длины оснований.
         double trapezoid = (a + b) / 2 * h;
         double cone = h / 3 * (a + Math.Sqrt(a * b) + b);
         Console.WriteLine($"трапеция: {trapezoid}, конус: {cone}");
@@ -61,7 +92,7 @@ class Task3
 {
     public static void Run()
     {
-        double r = Convert.ToDouble(Console.ReadLine());
+        double r = Input.ReadDouble(positive: true);
         double circle = Math.PI * r * r;
         double sphere = 4.0 / 3 * Math.PI * Math.Pow(r, 3);
         Console.WriteLine($"Круг: {circle} см², шар: {sphere} см³, отношение: {sphere / circle}");
@@ -73,9 +104,14 @@ class Task4
 {
     public static void Run()
     {
-        double a = Convert.ToDouble(Console.ReadLine());
-        double b = Convert.ToDouble(Console.ReadLine());
-        double c = Convert.ToDouble(Console.ReadLine());
+        double a = Input.ReadDouble(positive: true);
+        double b = Input.ReadDouble(positive: true);
+        double c = Input.ReadDouble(positive: true);
+        if (a <= Math.Abs(b - c) || a >= b + c)
+        {
+            Console.WriteLine("Треугольник с такими сторонами не существует.");
+            return;
+        }
         Console.WriteLine($"{Median(a, b, c)} {Median(b, a, c)} {Median(c, a, b)}");
     }
 
@@ -89,8 +125,8 @@ class Task5
 {
     public static void Run()
     {
-        double r = Convert.ToDouble(Console.ReadLine());
-        double h = Convert.ToDouble(Console.ReadLine());
+        double r = Input.ReadDouble(positive: true);
+        double h = Input.ReadDouble(positive: true);
         double l = Math.Sqrt(r * r + h * h); // образующая
         double s = Math.PI * r * (r + l);
         double v = Math.PI * r * r * h / 3;
@@ -103,7 +139,7 @@ class Task6
 {
     public static void Run()
     {
-        double r = Convert.ToDouble(Console.ReadLine());
+        double r = Input.ReadDouble(positive: true);
         double v = 4.0 / 3 * Math.PI * Math.Pow(r, 3);
         double s = 4 * Math.PI * r * r;
         Console.WriteLine($"Объем: {v:F3}, площадь: {s:F3}");
@@ -115,10 +151,10 @@ class Task7
 {
     public static void Run()
     {
-        double x1 = Convert.ToDouble(Console.ReadLine());
-        double y1 = Convert.ToDouble(Console.ReadLine());
-        double x2 = Convert.ToDouble(Console.ReadLine());
-        double y2 = Convert.ToDouble(Console.ReadLine());
+        double x1 = Input.ReadDouble();
+        double y1 = Input.ReadDouble();
+        double x2 = Input.ReadDouble();
+        double y2 = Input.ReadDouble();
         Console.WriteLine(Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2)));
     }
 }
@@ -128,8 +164,8 @@ class Task8
 {
     public static void Run()
     {
-        double x = Convert.ToDouble(Console.ReadLine());
-        double y = Convert.ToDouble(Console.ReadLine());
+        double x = Input.ReadDouble();
+        double y = Input.ReadDouble();
         Console.WriteLine((x + y + Math.Abs(x - y)) / 2);
     }
 }
@@ -139,11 +175,9 @@ class Task9
 {
     public static void Run()
     {
-        double a = Convert.ToDouble(Console.ReadLine());
-        double b = Convert.ToDouble(Console.ReadLine());
-        a += b;
-        b = a - b;
-        a -= b;
+        double a = Input.ReadDouble();
+        double b = Input.ReadDouble();
+        (a, b) = (b, a);
         Console.WriteLine($"{a}, {b}");
     }
 }
@@ -153,10 +187,10 @@ class Task10
 {
     public static void Run()
     {
-        int a = Convert.ToInt32(Console.ReadLine());
-        int b = Convert.ToInt32(Console.ReadLine());
-        int c = Convert.ToInt32(Console.ReadLine());
-        double avg = (a + b + c) / 3.0; // 3.0, иначе целочисленное деление
+        int a = Input.ReadInt();
+        int b = Input.ReadInt();
+        int c = Input.ReadInt();
+        double avg = ((double)a + b + c) / 3;
         Console.WriteLine(Math.Round(avg, 2));
     }
 }
@@ -166,9 +200,9 @@ class Task11
 {
     public static void Run()
     {
-        double a = Convert.ToDouble(Console.ReadLine());
-        double b = Convert.ToDouble(Console.ReadLine());
-        double c = Convert.ToDouble(Console.ReadLine());
+        double a = Input.ReadDouble(nonNegative: true);
+        double b = Input.ReadDouble(nonNegative: true);
+        double c = Input.ReadDouble(nonNegative: true);
         double sum = a + b + c;
         Console.WriteLine(Math.Round(sum * 0.13, 1));
     }
@@ -179,11 +213,11 @@ class Task12
 {
     public static void Run()
     {
-        int k = Math.Abs(Convert.ToInt32(Console.ReadLine()));
+        long k = Math.Abs((long)Input.ReadInt());
         int sum = 0;
         while (k > 0)
         {
-            sum += k % 10;
+            sum += (int)(k % 10);
             k /= 10;
         }
         Console.WriteLine(sum);
@@ -195,8 +229,8 @@ class Task13
 {
     public static void Run()
     {
-        double a = Convert.ToDouble(Console.ReadLine());
-        double b = Convert.ToDouble(Console.ReadLine());
+        double a = Input.ReadDouble(positive: true);
+        double b = Input.ReadDouble(positive: true);
         Console.WriteLine(Math.Round(Math.Sqrt(a * a + b * b), 5));
     }
 }
